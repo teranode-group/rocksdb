@@ -1392,9 +1392,9 @@ class BuiltinDecompressorV2SnappyOnly final : public BuiltinDecompressorV2 {
     return "BuiltinDecompressorV2SnappyOnly";
   }
 
+#ifdef SNAPPY
   Status ExtractUncompressedSize(Args& args) override {
     assert(args.compression_type == kSnappyCompression);
-#ifdef SNAPPY
     size_t uncompressed_length = 0;
     if (!snappy::GetUncompressedLength(args.compressed_data.data(),
                                        args.compressed_data.size(),
@@ -1403,10 +1403,12 @@ class BuiltinDecompressorV2SnappyOnly final : public BuiltinDecompressorV2 {
     }
     args.uncompressed_size = uncompressed_length;
     return Status::OK();
-#else
-    return Status::NotSupported("Snappy not supported in this build");
-#endif
   }
+#else
+  Status ExtractUncompressedSize(Args& /*args*/) override {
+    return Status::NotSupported("Snappy not supported in this build");
+  }
+#endif
 
   Status DecompressBlock(const Args& args, char* uncompressed_output) override {
     assert(args.compression_type == kSnappyCompression);
