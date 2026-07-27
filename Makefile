@@ -86,7 +86,7 @@ else
 	LIB_MODE?=shared
 endif
 
-$(info $$DEBUG_LEVEL is $(DEBUG_LEVEL), $$LIB_MODE is $(LIB_MODE))
+# $(info $$DEBUG_LEVEL is $(DEBUG_LEVEL), $$LIB_MODE is $(LIB_MODE))
 
 # Detect what platform we're building on.
 # Export some common variables that might have been passed as Make variables
