@@ -14,7 +14,7 @@
 #        cd build
 # 3. Run cmake to generate project files for Windows, add more options to enable required third-party libraries.
 #    See thirdparty.inc for more information.
-#        sample command: cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=1 -DWITH_SNAPPY=1 -DWITH_JEMALLOC=1 -DWITH_JNI=1 ..
+#        sample command: cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=1 -DWITH_SNAPPY=1 -DWITH_JEMALLOC=1 ..
 # 4. Then build the project in debug mode (you may want to add /m[:<N>] flag to run msbuild in <N> parallel threads
 #                                          or simply /m to use all avail cores)
 #        msbuild rocksdb.sln
@@ -891,13 +891,7 @@ set(SOURCES
         test_util/sync_point_impl.cc
         test_util/testutil.cc
         test_util/transaction_test_util.cc
-        tools/block_cache_analyzer/block_cache_trace_analyzer.cc
         tools/dump/db_dump_tool.cc
-        tools/io_tracer_parser_tool.cc
-        tools/ldb_cmd.cc
-        tools/ldb_tool.cc
-        tools/sst_dump_tool.cc
-        tools/trace_analyzer_tool.cc
         trace_replay/block_cache_tracer.cc
         trace_replay/io_tracer.cc
         trace_replay/trace_record_handler.cc
@@ -1223,22 +1217,14 @@ else()
   set(ROCKSDB_LIB ${ROCKSDB_STATIC_LIB})
 endif()
 
-option(WITH_JNI "build with JNI" OFF)
 # Tests are excluded from Release builds
 CMAKE_DEPENDENT_OPTION(WITH_TESTS "build with tests" ON
   "CMAKE_BUILD_TYPE STREQUAL Debug" OFF)
 option(WITH_BENCHMARK_TOOLS "build with benchmarks" ON)
-option(WITH_CORE_TOOLS "build with ldb and sst_dump" ON)
 option(WITH_TOOLS "build with tools" ON)
 
-if(WITH_TESTS OR WITH_BENCHMARK_TOOLS OR WITH_TOOLS OR WITH_JNI OR JNI)
+if(WITH_TESTS OR WITH_BENCHMARK_TOOLS OR WITH_TOOLS)
   include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/third-party/gtest-1.8.1/fused-src)
-endif()
-if(WITH_JNI OR JNI)
-  message(STATUS "JNI library is enabled")
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/java)
-else()
-  message(STATUS "JNI library is disabled")
 endif()
 
 # Installation and packaging
@@ -1490,12 +1476,6 @@ if(WITH_TESTS)
         test_util/testutil_test.cc
         trace_replay/block_cache_tracer_test.cc
         trace_replay/io_tracer_test.cc
-        tools/block_cache_analyzer/block_cache_trace_analyzer_test.cc
-        tools/io_tracer_parser_test.cc
-        tools/ldb_cmd_test.cc
-        tools/reduce_levels_test.cc
-        tools/sst_dump_test.cc
-        tools/trace_analyzer_test.cc
         util/autovector_test.cc
         util/bloom_test.cc
         util/coding_test.cc
@@ -1616,14 +1596,6 @@ if(WITH_TESTS)
 endif()
 
 if(WITH_BENCHMARK_TOOLS)
-  add_executable(db_bench${ARTIFACT_SUFFIX}
-    tools/simulated_hybrid_file_system.cc
-    tools/db_bench.cc
-    tools/tool_hooks.cc
-    tools/db_bench_tool.cc)
-  target_link_libraries(db_bench${ARTIFACT_SUFFIX}
-    ${ROCKSDB_LIB} ${THIRDPARTY_LIBS})
-
   add_executable(cache_bench${ARTIFACT_SUFFIX}
     cache/cache_bench.cc
     cache/cache_bench_tool.cc)
@@ -1660,26 +1632,6 @@ if(WITH_BENCHMARK_TOOLS)
     utilities/transactions/lock/point/point_lock_bench_tool.cc)
   target_link_libraries(point_lock_bench${ARTIFACT_SUFFIX}
     ${ROCKSDB_LIB} ${GFLAGS_LIB} ${FOLLY_LIBS})
-endif()
-
-option(WITH_TRACE_TOOLS "build with trace tools" ON)
-if(WITH_TRACE_TOOLS)
-  add_executable(block_cache_trace_analyzer${ARTIFACT_SUFFIX}
-    tools/block_cache_analyzer/block_cache_trace_analyzer_tool.cc)
-  target_link_libraries(block_cache_trace_analyzer${ARTIFACT_SUFFIX}
-    ${ROCKSDB_LIB} ${GFLAGS_LIB} ${FOLLY_LIBS})
-
-  add_executable(trace_analyzer${ARTIFACT_SUFFIX}
-    tools/trace_analyzer.cc)
-  target_link_libraries(trace_analyzer${ARTIFACT_SUFFIX}
-    ${ROCKSDB_LIB} ${GFLAGS_LIB} ${FOLLY_LIBS})
-
-endif()
-
-if(WITH_CORE_TOOLS OR WITH_TOOLS)
-  add_subdirectory(tools)
-  add_custom_target(core_tools
-    DEPENDS ${core_tool_deps})
 endif()
 
 if(WITH_TOOLS)

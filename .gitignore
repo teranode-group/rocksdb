@@ -86,8 +86,6 @@ db_logs/
 tp2/
 fbcode/
 fbcode
-buckifier/*.pyc
-buckifier/__pycache__
 .arcconfig
 
 compile_commands.json
